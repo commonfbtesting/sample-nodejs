@@ -1,0 +1,512 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "spec_version": "1.0.0",
+  "document": {
+    "id": "risk-issues",
+    "title": "Risk and Issues",
+    "purpose": "Machine-readable register of potential and known risks, issues, and defects for an application project, derived from codebase and environment analysis. The schema is project-agnostic so it can be reused across different app projects.",
+    "audience": ["developers", "maintainers", "security", "operations", "product", "agents"],
+    "reuse_scope": "any-app-project",
+    "conventions": {
+      "id_format": "RISK-### for risks, ISSUE-### for issues, DEFECT-### for confirmed defects",
+      "date_format": "YYYY-MM-DD",
+      "unknown_value": "null",
+      "severity_scale": "critical | high | medium | low | info",
+      "likelihood_scale": "almost-certain | likely | possible | unlikely | rare",
+      "status_values": ["open", "acknowledged", "mitigating", "mitigated", "accepted", "closed", "wont-fix"],
+      "category_values": [
+        "security",
+        "data-privacy",
+        "reliability",
+        "availability",
+        "performance",
+        "scalability",
+        "maintainability",
+        "technical-debt",
+        "testing",
+        "documentation",
+        "dependency",
+        "licensing",
+        "compliance",
+        "operational",
+        "cost",
+        "usability",
+        "process"
+      ]
+    },
+    "method": {
+      "source_of_analysis": "Static inspection of the workspace filesystem, git repository state, available build/test configuration, and runtime environment.",
+      "scoring": "risk_score = severity_weight x likelihood_weight; see scoring_model.",
+      "detection_notes": "Items marked detection 'not-detected' mean the check could not be performed because the relevant artifact (source code, manifest, test suite) is absent. They are reported as unverified coverage gaps rather than confirmed defects."
+    },
+    "scoring_model": {
+      "severity_weight": { "critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0 },
+      "likelihood_weight": { "almost-certain": 5, "likely": 4, "possible": 3, "unlikely": 2, "rare": 1 },
+      "score_bands": [
+        { "min": 16, "max": 20, "band": "severe" },
+        { "min": 10, "max": 15, "band": "high" },
+        { "min": 5, "max": 9, "band": "moderate" },
+        { "min": 0, "max": 4, "band": "low" }
+      ]
+    }
+  },
+  "schema": {
+    "type": "object",
+    "additionalProperties": true,
+    "required": ["spec_version", "document", "project_ref", "summary_counts", "risks", "issues", "coverage", "metadata"],
+    "properties": {
+      "spec_version": { "type": "string" },
+      "document": { "type": "object" },
+      "project_ref": {
+        "type": "object",
+        "required": ["name", "slug", "lifecycle_stage"],
+        "properties": {
+          "name": { "type": "string" },
+          "slug": { "type": "string" },
+          "lifecycle_stage": { "type": "string" },
+          "summary_ref": { "type": "string" }
+        }
+      },
+      "summary_counts": {
+        "type": "object",
+        "properties": {
+          "risks_total": { "type": "integer" },
+          "issues_total": { "type": "integer" },
+          "by_severity": { "type": "object" },
+          "by_status": { "type": "object" }
+        }
+      },
+      "risks": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/risk_item" }
+      },
+      "issues": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/issue_item" }
+      },
+      "coverage": {
+        "type": "object",
+        "description": "Which analysis checks were performed and whether they found anything.",
+        "properties": {
+          "checks_performed": { "type": "array", "items": { "type": "string" } },
+          "checks_not_possible": { "type": "array", "items": { "type": "object" } }
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "required": ["generated_at", "generator", "sources", "confidence"],
+        "properties": {
+          "generated_at": { "type": "string" },
+          "generator": { "type": "string" },
+          "sources": { "type": "array", "items": { "type": "string" } },
+          "confidence": { "type": "string", "enum": ["low", "medium", "high"] }
+        }
+      }
+    },
+    "definitions": {
+      "risk_item": {
+        "type": "object",
+        "required": ["id", "title", "category", "description", "severity", "likelihood", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "category": { "type": "string" },
+          "description": { "type": "string" },
+          "severity": { "type": "string" },
+          "likelihood": { "type": "string" },
+          "risk_score": { "type": "integer" },
+          "band": { "type": "string" },
+          "status": { "type": "string" },
+          "detection": { "type": "string", "enum": ["detected", "not-detected", "inferred"] },
+          "impact": { "type": "string" },
+          "affected_components": { "type": "array", "items": { "type": "string" } },
+          "evidence": { "type": "array", "items": { "type": "object" } },
+          "mitigation": { "type": "string" },
+          "recommended_action": { "type": "string" },
+          "owner": { "type": ["string", "null"] },
+          "due_date": { "type": ["string", "null"] },
+          "references": { "type": "array", "items": { "type": "string" } },
+          "created_at": { "type": "string" },
+          "updated_at": { "type": "string" }
+        }
+      },
+      "issue_item": {
+        "type": "object",
+        "required": ["id", "title", "type", "description", "severity", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "type": { "type": "string", "enum": ["defect", "bug", "vulnerability", "gap", "technical-debt", "regression", "incident"] },
+          "category": { "type": "string" },
+          "description": { "type": "string" },
+          "severity": { "type": "string" },
+          "status": { "type": "string" },
+          "detection": { "type": "string", "enum": ["detected", "not-detected", "inferred"] },
+          "reproducible": { "type": ["boolean", "null"] },
+          "affected_components": { "type": "array", "items": { "type": "string" } },
+          "evidence": { "type": "array", "items": { "type": "object" } },
+          "root_cause": { "type": ["string", "null"] },
+          "workaround": { "type": ["string", "null"] },
+          "recommended_fix": { "type": "string" },
+          "owner": { "type": ["string", "null"] },
+          "created_at": { "type": "string" },
+          "updated_at": { "type": "string" }
+        }
+      }
+    }
+  },
+  "data": {
+    "spec_version": "1.0.0",
+    "document": {
+      "id": "risk-issues",
+      "title": "Risk and Issues",
+      "purpose": "Machine-readable register of potential and known risks, issues, and defects for an application project, derived from codebase and environment analysis. The schema is project-agnostic so it can be reused across different app projects.",
+      "audience": ["developers", "maintainers", "security", "operations", "product", "agents"],
+      "reuse_scope": "any-app-project",
+      "conventions": {
+        "id_format": "RISK-### for risks, ISSUE-### for issues, DEFECT-### for confirmed defects",
+        "date_format": "YYYY-MM-DD",
+        "unknown_value": "null",
+        "severity_scale": "critical | high | medium | low | info",
+        "likelihood_scale": "almost-certain | likely | possible | unlikely | rare",
+        "status_values": ["open", "acknowledged", "mitigating", "mitigated", "accepted", "closed", "wont-fix"],
+        "category_values": [
+          "security",
+          "data-privacy",
+          "reliability",
+          "availability",
+          "performance",
+          "scalability",
+          "maintainability",
+          "technical-debt",
+          "testing",
+          "documentation",
+          "dependency",
+          "licensing",
+          "compliance",
+          "operational",
+          "cost",
+          "usability",
+          "process"
+        ]
+      },
+      "method": {
+        "source_of_analysis": "Static inspection of the workspace filesystem, git repository state, available build/test configuration, and runtime environment.",
+        "scoring": "risk_score = severity_weight x likelihood_weight; see scoring_model.",
+        "detection_notes": "Items marked detection 'not-detected' mean the check could not be performed because the relevant artifact (source code, manifest, test suite) is absent. They are reported as unverified coverage gaps rather than confirmed defects."
+      },
+      "scoring_model": {
+        "severity_weight": { "critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0 },
+        "likelihood_weight": { "almost-certain": 5, "likely": 4, "possible": 3, "unlikely": 2, "rare": 1 },
+        "score_bands": [
+          { "min": 16, "max": 20, "band": "severe" },
+          { "min": 10, "max": 15, "band": "high" },
+          { "min": 5, "max": 9, "band": "moderate" },
+          { "min": 0, "max": 4, "band": "low" }
+        ]
+      }
+    },
+    "project_ref": {
+      "name": "Unnamed Project",
+      "slug": "unnamed-project",
+      "lifecycle_stage": "greenfield",
+      "summary_ref": "specs/project.json"
+    },
+    "summary_counts": {
+      "risks_total": 7,
+      "issues_total": 4,
+      "by_severity": { "critical": 0, "high": 0, "medium": 7, "low": 4, "info": 0 },
+      "by_status": { "open": 9, "acknowledged": 2 }
+    },
+    "risks": [
+      {
+        "id": "RISK-001",
+        "title": "No source code or project structure exists",
+        "category": "maintainability",
+        "description": "The repository at /workspace/project is empty: zero tracked files, zero commits, no build manifest, and no application code. Nothing can be built, run, or deployed, so every downstream activity is blocked until a codebase exists.",
+        "severity": "medium",
+        "likelihood": "almost-certain",
+        "risk_score": 10,
+        "band": "high",
+        "status": "open",
+        "detection": "detected",
+        "impact": "No deliverable can be produced from this workspace. Any delivery timeline depends entirely on the first code being written.",
+        "affected_components": ["repository", "workspace"],
+        "evidence": [
+          { "source": "git ls-files", "observation": "no tracked files" },
+          { "source": "git log", "observation": "fatal: your current branch 'master' does not have any commits yet" },
+          { "source": "find /workspace/project -type f -not -path './.git/*'", "observation": "0 files" }
+        ],
+        "mitigation": "Create the initial application scaffold with a dependency manifest, entry point, and README as the first change.",
+        "recommended_action": "Initialize the project structure and commit an initial scaffold.",
+        "owner": null,
+        "due_date": null,
+        "references": [],
+        "created_at": "2026-09-23",
+        "updated_at": "2026-09-23"
+      },
+      {
+        "id": "RISK-002",
+        "title": "No dependency manifest or lockfile",
+        "category": "dependency",
+        "description": "No package.json, pyproject.toml, requirements.txt, pom.xml, go.mod, Cargo.toml, or lockfile is present. There is therefore no pinned dependency set, no reproducible build, and no supply-chain surface to scan. Once dependencies are added without a lockfile, builds may pull unreviewed transitive versions.",
+        "severity": "medium",
+        "likelihood": "likely",
+        "risk_score": 8,
+        "band": "moderate",
+        "status": "open",
+        "detection": "detected",
+        "impact": "Non-reproducible builds, unreviewed transitive dependencies, and exposure to dependency-confusion or typosquatting attacks later.",
+        "affected_components": ["build", "dependencies"],
+        "evidence": [
+          { "source": "filesystem scan", "observation": "no manifest or lockfile of any ecosystem found" }
+        ],
+        "mitigation": "Add the ecosystem-appropriate manifest and lockfile, commit the lockfile, and enable automated dependency scanning (for example Dependabot or Renovate).",
+        "recommended_action": "Introduce a manifest plus lockfile with the first code commit and wire dependency scanning into CI.",
+        "owner": null,
+        "due_date": null,
+        "references": [],
+        "created_at": "2026-09-23",
+        "updated_at": "2026-09-23"
+      },
+      {
+        "id": "RISK-003",
+        "title": "No automated tests or CI pipeline",
+        "category": "testing",
+        "description": "There is no test suite, test framework configuration, or CI workflow. Without automated verification, regressions cannot be caught, and quality gates cannot be enforced on future changes.",
+        "severity": "medium",
+        "likelihood": "likely",
+        "risk_score": 8,
+        "band": "moderate",
+        "status": "open",
+        "detection": "detected",
+        "impact": "Defects reach users undetected; refactoring becomes risky; release confidence is low.",
+        "affected_components": ["testing", "ci"],
+        "evidence": [
+          { "source": "filesystem scan", "observation": "no test directories, test config, or CI workflow files" }
+        ],
+        "mitigation": "Adopt a test framework and add a CI workflow that runs lint, tests, and a build on every pull request.",
+        "recommended_action": "Add a minimal test harness and a CI workflow before the codebase grows.",
+        "owner": null,
+        "due_date": null,
+        "references": [],
+        "created_at": "2026-09-23",
+        "updated_at": "2026-09-23"
+      },
+      {
+        "id": "RISK-004",
+        "title": "Secrets present in the runtime environment",
+        "category": "security",
+        "description": "The environment exposes credentials (OPENHANDS_API_KEY and GITHUB_TOKEN) as environment variables. If future code logs the environment, commits a .env file, or copies values into configuration, these secrets could be disclosed.",
+        "severity": "medium",
+        "likelihood": "possible",
+        "risk_score": 6,
+        "band": "moderate",
+        "status": "acknowledged",
+        "detection": "detected",
+        "impact": "Leaked API key or repository token could allow unauthorized API access or repository modification.",
+        "affected_components": ["environment", "configuration"],
+        "evidence": [
+          { "source": "environment inspection", "observation": "OPENHANDS_API_KEY and GITHUB_TOKEN are set in the runtime environment" }
+        ],
+        "mitigation": "Add a .gitignore covering .env files, never log environment dumps, and use a secret manager or platform-injected secrets rather than committed values.",
+        "recommended_action": "Add secret-hygiene rules and a .gitignore before any configuration code is written.",
+        "owner": null,
+        "due_date": null,
+        "references": [],
+        "created_at": "2026-09-23",
+        "updated_at": "2026-09-23"
+      },
+      {
+        "id": "RISK-005",
+        "title": "No license declared",
+        "category": "licensing",
+        "description": "No LICENSE file exists, so the legal terms under which the project may be used, modified, or distributed are undefined. This blocks adoption and can create compliance ambiguity once third-party dependencies are added.",
+        "severity": "low",
+        "likelihood": "likely",
+        "risk_score": 4,
+        "band": "low",
+        "status": "open",
+        "detection": "detected",
+        "impact": "Unclear usage rights; potential license-compatibility conflicts with future dependencies.",
+        "affected_components": ["repository"],
+        "evidence": [
+          { "source": "filesystem scan", "observation": "no LICENSE file present" }
+        ],
+        "mitigation": "Choose and add an explicit license, and record a dependency-license policy.",
+        "recommended_action": "Add a LICENSE file and note the chosen license in specs/project.json.",
+        "owner": null,
+        "due_date": null,
+        "references": [],
+        "created_at": "2026-09-23",
+        "updated_at": "2026-09-23"
+      },
+      {
+        "id": "RISK-006",
+        "title": "Default branch has no protection or review policy",
+        "category": "process",
+        "description": "The repository is on branch 'master' with no commits and no configured remote. There is no branch protection, required review, or commit convention in place to prevent unreviewed or malformed changes once collaboration starts.",
+        "severity": "low",
+        "likelihood": "possible",
+        "risk_score": 3,
+        "band": "low",
+        "status": "open",
+        "detection": "inferred",
+        "impact": "Unreviewed changes may land directly on the main branch; inconsistent history and weak accountability.",
+        "affected_components": ["repository", "process"],
+        "evidence": [
+          { "source": "git branch", "observation": "only 'master' exists, with no commits" },
+          { "source": "git remote -v", "observation": "no remote configured" }
+        ],
+        "mitigation": "Once a remote exists, enable branch protection and require pull-request review; agree on a commit message convention.",
+        "recommended_action": "Configure branch protection and review requirements when the remote repository is created.",
+        "owner": null,
+        "due_date": null,
+        "references": [],
+        "created_at": "2026-09-23",
+        "updated_at": "2026-09-23"
+      },
+      {
+        "id": "RISK-007",
+        "title": "Application hosts are unreachable (HTTP 502)",
+        "category": "availability",
+        "description": "The two provisioned application hosts (work-1 and work-2) both return HTTP 502 Bad Gateway and no process is listening on the corresponding local ports. If a service is expected to run here, it is currently unavailable and its absence is not surfaced by any health check.",
+        "severity": "low",
+        "likelihood": "possible",
+        "risk_score": 3,
+        "band": "low",
+        "status": "open",
+        "detection": "detected",
+        "impact": "No application is reachable for testing or demonstration; automated checks against the host would fail with 502.",
+        "affected_components": ["deployment", "hosting"],
+        "evidence": [
+          { "source": "curl https://work-1-kmbhqivyhxjhcqvt.prod-runtime.all-hands.dev/", "observation": "HTTP/2 502 Bad Gateway" },
+          { "source": "curl https://work-2-kmbhqivyhxjhcqvt.prod-runtime.all-hands.dev/", "observation": "HTTP/2 502 Bad Gateway" },
+          { "source": "socket listing", "observation": "no listeners on ports 12000 or 12001" }
+        ],
+        "mitigation": "Confirm whether an application is expected on these hosts; if so, add a start command and a health-check endpoint.",
+        "recommended_action": "Decide whether these hosts should serve the project, then provision a start command and health check accordingly.",
+        "owner": null,
+        "due_date": null,
+        "references": [],
+        "created_at": "2026-09-23",
+        "updated_at": "2026-09-23"
+      }
+    ],
+    "issues": [
+      {
+        "id": "ISSUE-001",
+        "title": "No README or project documentation",
+        "type": "gap",
+        "category": "documentation",
+        "description": "The repository contains no README, no contributor guide, and no documentation of any kind. A newcomer has no entry point for understanding or running the project.",
+        "severity": "medium",
+        "status": "open",
+        "detection": "detected",
+        "reproducible": true,
+        "affected_components": ["documentation"],
+        "evidence": [
+          { "source": "filesystem scan", "observation": "no .md files in the repository" }
+        ],
+        "root_cause": "Project has not been scaffolded yet.",
+        "workaround": null,
+        "recommended_fix": "Add a README describing purpose, setup, and usage, and keep it in sync with the project summary spec.",
+        "owner": null,
+        "created_at": "2026-09-23",
+        "updated_at": "2026-09-23"
+      },
+      {
+        "id": "ISSUE-002",
+        "title": "No .gitignore file",
+        "type": "gap",
+        "category": "process",
+        "description": "No .gitignore exists. Build artifacts, dependency directories, editor files, and local environment files (including .env) risk being committed accidentally.",
+        "severity": "medium",
+        "status": "open",
+        "detection": "detected",
+        "reproducible": true,
+        "affected_components": ["repository", "configuration"],
+        "evidence": [
+          { "source": "filesystem scan", "observation": "no .gitignore present" }
+        ],
+        "root_cause": "Project has not been scaffolded yet.",
+        "workaround": null,
+        "recommended_fix": "Add a .gitignore appropriate to the chosen ecosystem, including .env and secret-bearing files.",
+        "owner": null,
+        "created_at": "2026-09-23",
+        "updated_at": "2026-09-23"
+      },
+      {
+        "id": "ISSUE-003",
+        "title": "Security, quality, and dependency analysis could not be performed",
+        "type": "gap",
+        "category": "security",
+        "description": "Static analysis for vulnerabilities, code-quality problems, and dependency CVEs was not possible because there is no source code, manifest, or lockfile to analyze. The security posture of the eventual project is therefore entirely unverified.",
+        "severity": "medium",
+        "status": "open",
+        "detection": "not-detected",
+        "reproducible": null,
+        "affected_components": ["security", "dependencies", "code-quality"],
+        "evidence": [
+          { "source": "analysis attempt", "observation": "no analyzable artifacts found in the workspace" }
+        ],
+        "root_cause": "Absence of a codebase.",
+        "workaround": null,
+        "recommended_fix": "Once code and manifests exist, run a SAST scan, a dependency CVE scan, and a linter, and record findings in this register.",
+        "owner": null,
+        "created_at": "2026-09-23",
+        "updated_at": "2026-09-23"
+      },
+      {
+        "id": "ISSUE-004",
+        "title": "No environment or configuration contract defined",
+        "type": "gap",
+        "category": "operational",
+        "description": "There is no documented list of required environment variables, no example configuration file, and no validation of configuration at startup. Only runtime-injected variables currently exist, and they are platform-provided rather than project-defined.",
+        "severity": "low",
+        "status": "open",
+        "detection": "inferred",
+        "reproducible": null,
+        "affected_components": ["configuration", "operations"],
+        "evidence": [
+          { "source": "environment inspection", "observation": "only OpenHands runtime variables are present; no project configuration files exist" }
+        ],
+        "root_cause": "Project has not been scaffolded yet.",
+        "workaround": null,
+        "recommended_fix": "Add a .env.example and fail fast at startup when required configuration is missing.",
+        "owner": null,
+        "created_at": "2026-09-23",
+        "updated_at": "2026-09-23"
+      }
+    ],
+    "coverage": {
+      "checks_performed": [
+        "filesystem inventory (tracked and untracked files)",
+        "git repository state (commits, branches, remotes)",
+        "dependency manifest and lockfile discovery",
+        "test suite and CI workflow discovery",
+        "license and documentation file discovery",
+        "runtime environment variable inspection",
+        "application host reachability (HTTP) and local port listening check"
+      ],
+      "checks_not_possible": [
+        { "check": "static application security testing (SAST)", "reason": "no source code present" },
+        { "check": "dependency vulnerability scan (SCA)", "reason": "no manifest or lockfile present" },
+        { "check": "secret scanning of committed history", "reason": "no commit history present" },
+        { "check": "test coverage measurement", "reason": "no tests present" },
+        { "check": "runtime performance and error-rate analysis", "reason": "no application running (hosts return HTTP 502)" }
+      ]
+    },
+    "metadata": {
+      "generated_at": "2026-09-23T03:48:33Z",
+      "generator": "OpenHands agent (codebase and environment analysis)",
+      "sources": [
+        "filesystem inspection of /workspace/project",
+        "git repository state",
+        "runtime environment variables",
+        "HTTP probes of provisioned application hosts"
+      ],
+      "confidence": "high"
+    }
+  }
+}

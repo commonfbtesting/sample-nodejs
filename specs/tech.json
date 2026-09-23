@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "spec_version": "1.0.0",
+  "document": {
+    "id": "tech",
+    "title": "Technical Summary",
+    "purpose": "Machine-readable description of an application project's technology stack, languages, frameworks, dependencies, tooling, and runtime configuration. The schema is intentionally project-agnostic so the same structure can be reused across different app projects.",
+    "audience": ["developers", "architects", "operations", "security", "agents"],
+    "reuse_scope": "any-app-project",
+    "conventions": {
+      "id_format": "lowercase-kebab-case",
+      "version_format": "semver-or-range",
+      "unknown_value": "null",
+      "empty_collection": "[]",
+      "component_shape": {
+        "name": "string",
+        "version": "string|null",
+        "category": "string",
+        "purpose": "string|null",
+        "scope": "runtime|dev|build|test|optional",
+        "criticality": "critical|high|medium|low",
+        "license": "string|null",
+        "source": "string|null",
+        "notes": "string|null"
+      }
+    }
+  },
+  "schema": {
+    "type": "object",
+    "additionalProperties": true,
+    "required": ["spec_version", "document", "project_ref", "stack", "dependencies", "tooling", "metadata"],
+    "properties": {
+      "spec_version": { "type": "string" },
+      "document": { "type": "object" },
+      "project_ref": {
+        "type": "object",
+        "required": ["name", "slug", "lifecycle_stage"],
+        "properties": {
+          "name": { "type": "string" },
+          "slug": { "type": "string" },
+          "lifecycle_stage": { "type": "string" },
+          "summary_ref": { "type": "string", "description": "Relative path to the project summary document." }
+        }
+      },
+      "stack": {
+        "type": "object",
+        "required": ["application_types", "languages"],
+        "properties": {
+          "application_types": { "type": "array", "items": { "type": "string" } },
+          "languages": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "frameworks": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "runtimes": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "package_managers": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "build_tools": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "databases": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "caches": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "message_brokers": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "infrastructure": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "containers": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "orchestration": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "cloud_providers": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "cicd": { "type": "array", "items": { "$ref": "#/definitions/component" } }
+        }
+      },
+      "architecture": {
+        "type": "object",
+        "properties": {
+          "style": { "type": "array", "items": { "type": "string" } },
+          "overview": { "type": ["string", "null"] },
+          "components": { "type": "array", "items": { "type": "object" } },
+          "external_integrations": { "type": "array", "items": { "type": "object" } }
+        }
+      },
+      "dependencies": {
+        "type": "object",
+        "required": ["runtime", "development"],
+        "properties": {
+          "runtime": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "development": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "lockfile": { "type": ["string", "null"] },
+          "manifest_files": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "tooling": {
+        "type": "object",
+        "properties": {
+          "linters": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "formatters": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "type_checkers": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "test_frameworks": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "security_scanners": { "type": "array", "items": { "$ref": "#/definitions/component" } },
+          "quality_gates": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "configuration": {
+        "type": "object",
+        "properties": {
+          "config_files": { "type": "array", "items": { "type": "object" } },
+          "environment_variables": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name"],
+              "properties": {
+                "name": { "type": "string" },
+                "required": { "type": "boolean" },
+                "secret": { "type": "boolean" },
+                "default": { "type": ["string", "number", "boolean", "null"] },
+                "description": { "type": ["string", "null"] }
+              }
+            }
+          }
+        }
+      },
+      "deployment": {
+        "type": "object",
+        "properties": {
+          "targets": { "type": "array", "items": { "type": "string" } },
+          "strategy": { "type": ["string", "null"] },
+          "artifacts": { "type": "array", "items": { "type": "string" } },
+          "ports": { "type": "array", "items": { "type": "integer" } }
+        }
+      },
+      "observability": {
+        "type": "object",
+        "properties": {
+          "logging": { "type": ["string", "null"] },
+          "metrics": { "type": ["string", "null"] },
+          "tracing": { "type": ["string", "null"] },
+          "health_checks": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "required": ["generated_at", "generator", "sources", "confidence"],
+        "properties": {
+          "generated_at": { "type": "string" },
+          "generator": { "type": "string" },
+          "sources": { "type": "array", "items": { "type": "string" } },
+          "confidence": { "type": "string", "enum": ["low", "medium", "high"] }
+        }
+      }
+    },
+    "definitions": {
+      "component": {
+        "type": "object",
+        "required": ["name", "category"],
+        "properties": {
+          "name": { "type": "string" },
+          "version": { "type": ["string", "null"] },
+          "category": { "type": "string" },
+          "purpose": { "type": ["string", "null"] },
+          "scope": { "type": "string", "enum": ["runtime", "dev", "build", "test", "optional"] },
+          "criticality": { "type": "string", "enum": ["critical", "high", "medium", "low"] },
+          "license": { "type": ["string", "null"] },
+          "source": { "type": ["string", "null"] },
+          "notes": { "type": ["string", "null"] }
+        }
+      }
+    }
+  },
+  "data": {
+    "spec_version": "1.0.0",
+    "document": {
+      "id": "tech",
+      "title": "Technical Summary",
+      "purpose": "Machine-readable description of an application project's technology stack, languages, frameworks, dependencies, tooling, and runtime configuration. The schema is intentionally project-agnostic so the same structure can be reused across different app projects.",
+      "audience": ["developers", "architects", "operations", "security", "agents"],
+      "reuse_scope": "any-app-project",
+      "conventions": {
+        "id_format": "lowercase-kebab-case",
+        "version_format": "semver-or-range",
+        "unknown_value": "null",
+        "empty_collection": "[]",
+        "component_shape": {
+          "name": "string",
+          "version": "string|null",
+          "category": "string",
+          "purpose": "string|null",
+          "scope": "runtime|dev|build|test|optional",
+          "criticality": "critical|high|medium|low",
+          "license": "string|null",
+          "source": "string|null",
+          "notes": "string|null"
+        }
+      }
+    },
+    "project_ref": {
+      "name": "Unnamed Project",
+      "slug": "unnamed-project",
+      "lifecycle_stage": "greenfield",
+      "summary_ref": "specs/project.json"
+    },
+    "stack": {
+      "application_types": [],
+      "languages": [],
+      "frameworks": [],
+      "runtimes": [],
+      "package_managers": [],
+      "build_tools": [],
+      "databases": [],
+      "caches": [],
+      "message_brokers": [],
+      "infrastructure": [],
+      "containers": [],
+      "orchestration": [],
+      "cloud_providers": [],
+      "cicd": []
+    },
+    "architecture": {
+      "style": [],
+      "overview": null,
+      "components": [],
+      "external_integrations": []
+    },
+    "dependencies": {
+      "runtime": [],
+      "development": [],
+      "lockfile": null,
+      "manifest_files": []
+    },
+    "tooling": {
+      "linters": [],
+      "formatters": [],
+      "type_checkers": [],
+      "test_frameworks": [],
+      "security_scanners": [],
+      "quality_gates": []
+    },
+    "configuration": {
+      "config_files": [],
+      "environment_variables": [
+        {
+          "name": "OH_VSCODE_PORT",
+          "required": false,
+          "secret": false,
+          "default": "60001",
+          "description": "Runtime-provided port for the embedded VS Code server. Supplied by the OpenHands runtime, not by the project."
+        },
+        {
+          "name": "VSCODE_PORT",
+          "required": false,
+          "secret": false,
+          "default": "60001",
+          "description": "Runtime-provided VS Code port. Supplied by the OpenHands runtime."
+        },
+        {
+          "name": "OH_CONVERSATIONS_PATH",
+          "required": false,
+          "secret": false,
+          "default": "/workspace/conversations",
+          "description": "Runtime-provided path where conversation state is stored. Not a project configuration value."
+        },
+        {
+          "name": "OPENHANDS_API_KEY",
+          "required": false,
+          "secret": true,
+          "default": null,
+          "description": "Runtime-injected credential for OpenHands Cloud API access. Managed by the platform; never commit a value."
+        },
+        {
+          "name": "GITHUB_TOKEN",
+          "required": false,
+          "secret": true,
+          "default": null,
+          "description": "Runtime-injected GitHub authentication token available in the environment. Managed by the platform; never commit a value."
+        }
+      ]
+    },
+    "deployment": {
+      "targets": [],
+      "strategy": null,
+      "artifacts": [],
+      "ports": [12000, 12001]
+    },
+    "observability": {
+      "logging": null,
+      "metrics": null,
+      "tracing": null,
+      "health_checks": []
+    },
+    "metadata": {
+      "generated_at": "2026-09-23T03:48:33Z",
+      "generator": "OpenHands agent (codebase inspection)",
+      "sources": [
+        "filesystem inspection of /workspace/project (no manifests found)",
+        "runtime environment variable inspection",
+        "git repository state"
+      ],
+      "confidence": "high"
+    }
+  }
+}

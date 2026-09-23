@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "spec_version": "1.0.0",
+  "document": {
+    "id": "project",
+    "title": "Project Summary",
+    "purpose": "Human-readable and machine-readable summary of what a project is, why it exists, who it is for, and its basic identifying information.",
+    "audience": ["developers", "maintainers", "product", "operations", "agents"],
+    "reuse_scope": "any-app-project",
+    "conventions": {
+      "id_format": "lowercase-kebab-case",
+      "date_format": "YYYY-MM-DD",
+      "unknown_value": "null",
+      "natural_language_fields": [
+        "summary.description",
+        "summary.problem_statement",
+        "summary.solution",
+        "background.origin",
+        "background.motivation",
+        "background.context"
+      ]
+    }
+  },
+  "schema": {
+    "type": "object",
+    "additionalProperties": true,
+    "required": ["spec_version", "document", "project", "summary", "background", "basic_information", "metadata"],
+    "properties": {
+      "spec_version": { "type": "string" },
+      "document": {
+        "type": "object",
+        "required": ["id", "title"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "purpose": { "type": "string" },
+          "audience": { "type": "array", "items": { "type": "string" } },
+          "reuse_scope": { "type": "string" },
+          "conventions": { "type": "object" }
+        }
+      },
+      "project": {
+        "type": "object",
+        "required": ["name", "slug", "type", "lifecycle_stage"],
+        "properties": {
+          "name": { "type": "string" },
+          "slug": { "type": "string" },
+          "type": { "type": "string", "enum": ["web-app", "mobile-app", "desktop-app", "library", "service", "cli", "api", "monorepo", "other"] },
+          "lifecycle_stage": { "type": "string", "enum": ["concept", "greenfield", "development", "beta", "production", "maintenance", "deprecated", "archived"] },
+          "version": { "type": ["string", "null"] },
+          "repository": { "type": ["string", "null"] },
+          "homepage": { "type": ["string", "null"] },
+          "license": { "type": ["string", "null"] }
+        }
+      },
+      "summary": {
+        "type": "object",
+        "required": ["description", "problem_statement", "solution", "value_proposition"],
+        "properties": {
+          "description": { "type": "string" },
+          "problem_statement": { "type": "string" },
+          "solution": { "type": "string" },
+          "value_proposition": { "type": "string" },
+          "primary_goals": { "type": "array", "items": { "type": "string" } },
+          "non_goals": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "background": {
+        "type": "object",
+        "required": ["origin", "motivation", "context"],
+        "properties": {
+          "origin": { "type": "string" },
+          "motivation": { "type": "string" },
+          "context": { "type": "string" },
+          "prior_art": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "usage": {
+        "type": "object",
+        "properties": {
+          "intended_users": { "type": "array", "items": { "type": "string" } },
+          "primary_use_cases": { "type": "array", "items": { "type": "string" } },
+          "getting_started": { "type": "array", "items": { "type": "string" } },
+          "entry_points": { "type": "array", "items": { "type": "object" } }
+        }
+      },
+      "basic_information": {
+        "type": "object",
+        "description": "Structured key/value table of the project's basic facts.",
+        "properties": {
+          "table": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["field", "value"],
+              "properties": {
+                "field": { "type": "string" },
+                "value": { "type": ["string", "number", "boolean", "null", "array"] },
+                "note": { "type": ["string", "null"] }
+              }
+            }
+          }
+        }
+      },
+      "bullet_points": { "type": "array", "items": { "type": "string" } },
+      "links": { "type": "array", "items": { "type": "object" } },
+      "metadata": {
+        "type": "object",
+        "required": ["generated_at", "generator", "sources", "confidence"],
+        "properties": {
+          "generated_at": { "type": "string" },
+          "generator": { "type": "string" },
+          "sources": { "type": "array", "items": { "type": "string" } },
+          "confidence": { "type": "string", "enum": ["low", "medium", "high"] }
+        }
+      }
+    }
+  },
+  "data": {
+    "spec_version": "1.0.0",
+    "document": {
+      "id": "project",
+      "title": "Project Summary",
+      "purpose": "Human-readable and machine-readable summary of what a project is, why it exists, who it is for, and its basic identifying information.",
+      "audience": ["developers", "maintainers", "product", "operations", "agents"],
+      "reuse_scope": "any-app-project",
+      "conventions": {
+        "id_format": "lowercase-kebab-case",
+        "date_format": "YYYY-MM-DD",
+        "unknown_value": "null",
+        "natural_language_fields": [
+          "summary.description",
+          "summary.problem_statement",
+          "summary.solution",
+          "background.origin",
+          "background.motivation",
+          "background.context"
+        ]
+      }
+    },
+    "project": {
+      "name": "Unnamed Project",
+      "slug": "unnamed-project",
+      "type": "other",
+      "lifecycle_stage": "greenfield",
+      "version": null,
+      "repository": null,
+      "homepage": null,
+      "license": null
+    },
+    "summary": {
+      "description": "This workspace is an empty, freshly initialized git repository. It contains no source files, no build configuration, and no commits, so no functional project exists yet. This document captures the known baseline and is intended to be updated as the project takes shape.",
+      "problem_statement": "There is no source code or documentation in the workspace, so the purpose of the project cannot be determined from the codebase. The project is at the very beginning of its lifecycle.",
+      "solution": "Establish a documented baseline (project summary, technical summary, and risk register) that will be maintained as the project is built, so that the first code added inherits clear context.",
+      "value_proposition": "A single, reusable description of the project that any contributor or agent can read before making changes, preventing re-discovery of basic facts.",
+      "primary_goals": [
+        "Establish an initial project description and metadata record.",
+        "Provide a stable schema that can be reused across different app projects.",
+        "Keep the record current as the project is implemented."
+      ],
+      "non_goals": [
+        "Describe application behavior that does not yet exist.",
+        "Invent technical stack or features before decisions are made."
+      ]
+    },
+    "background": {
+      "origin": "The workspace was initialized with `git init` and an empty directory named `project`. No files were copied in and no history was provided.",
+      "motivation": "A structured project summary is a required piece of project documentation, and it must be produced even before code exists so that subsequent work has a reference point.",
+      "context": "The environment is an OpenHands local runtime workspace with a git repository at /workspace/project and no remotes configured. Web application hosts are available (work-1 and work-2) but currently return HTTP 502, indicating no application is running.",
+      "prior_art": []
+    },
+    "usage": {
+      "intended_users": ["project maintainers", "future contributors", "automation agents"],
+      "primary_use_cases": [
+        "Orient a new contributor before they read the code.",
+        "Feed project metadata into documentation generators or dashboards.",
+        "Track project lifecycle stage and ownership over time."
+      ],
+      "getting_started": [
+        "Clone or open the repository.",
+        "Add source code and a dependency/build manifest (for example package.json, pyproject.toml, pom.xml, or go.mod).",
+        "Update this file's `project`, `summary`, and `basic_information` sections to reflect the real project.",
+        "Run the project's build and test commands once defined."
+      ],
+      "entry_points": []
+    },
+    "basic_information": {
+      "table": [
+        { "field": "Project Name", "value": "Unnamed Project", "note": "Placeholder; no name is declared in the workspace." },
+        { "field": "Slug", "value": "unnamed-project", "note": null },
+        { "field": "Project Type", "value": "other", "note": "Not determinable without a manifest or source code." },
+        { "field": "Lifecycle Stage", "value": "greenfield", "note": "Repository initialized, no code committed." },
+        { "field": "Version", "value": null, "note": "No version file or tag present." },
+        { "field": "Repository URL", "value": null, "note": "No git remote configured." },
+        { "field": "License", "value": null, "note": "No LICENSE file present." },
+        { "field": "Primary Language", "value": null, "note": "No source files present." },
+        { "field": "Default Branch", "value": "master", "note": "Branch exists but has no commits." },
+        { "field": "Commits", "value": 0, "note": "Repository has no commit history." },
+        { "field": "Tracked Files", "value": 0, "note": "No files are tracked by git." },
+        { "field": "Created", "value": "2026-09-23", "note": "Workspace and git repository initialized on this date." }
+      ]
+    },
+    "bullet_points": [
+      "Workspace path: /workspace/project (git repository, no commits).",
+      "No source code, build manifest, or documentation files exist yet.",
+      "No git remote is configured, so there is no upstream repository.",
+      "Available app hosts (work-1, work-2) return HTTP 502; nothing is deployed or running.",
+      "Project identity, purpose, and stack must be defined by the next contributor."
+    ],
+    "links": [],
+    "metadata": {
+      "generated_at": "2026-09-23T03:48:33Z",
+      "generator": "OpenHands agent (codebase inspection)",
+      "sources": [
+        "filesystem inspection of /workspace/project",
+        "git repository state (git status, git log)",
+        "runtime environment variables"
+      ],
+      "confidence": "high"
+    }
+  }
+}
